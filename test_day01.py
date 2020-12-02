@@ -26,6 +26,24 @@ class TestDay01(unittest.TestCase):
     
     def test_product_of_sum(self):
         self.assertEqual(pkg.product_of_sum('test_input/day01_t1.txt', 2020), 514579)
+    
+    def test_find_sum_of_three(self):
+        expenses = pkg.load_expense_report('test_input/day01_t1.txt')
+        entries = pkg.find_sum_of_three(expenses, 2020)
+        self.assertEqual(len(entries), 3)
+        self.assertIn(979, entries)
+        self.assertIn(366, entries)
+        self.assertIn(675, entries)
+
+    def test_find_sum_of_three_exc(self):
+        expenses = pkg.load_expense_report('test_input/day01_t1.txt')
+        # there should be no combination that adds to 1
+        with self.assertRaises(ValueError):
+            pkg.find_sum_of_three(expenses, 1)
+
+    def test_product_of_sum_of_three(self):
+        self.assertEqual(pkg.product_of_sum_of_three('test_input/day01_t1.txt', 2020), 241861950)
+
 
 if __name__ == '__main__':
     unittest.main()
