@@ -16,8 +16,8 @@ def yield_matches(c, s):
 def check1(policy, passwd):
     '''
     Checks if a plaintext password is valid against the given policy.
-    The password is valid if the character policy_self.char appears at 
-    least policy_self.min times, but no more than policy_self.max times.
+    The password is valid if the character policy.char appears at 
+    least policy.min times, but no more than policy.max times.
     '''
     count = 0
     for match in yield_matches(policy.char, passwd):
@@ -25,6 +25,16 @@ def check1(policy, passwd):
         if count > policy.max:
             return False
     return count >= policy.min
+
+def check2(policy, passwd):
+    '''
+    Checks if a plaintext password is valid against the given policy.
+    The password is valid if the character policy.char appears exactly
+    once in passwd at index positions policy.min and policy.max 
+    '''
+    return (passwd[policy.min-1] == policy.char and passwd[policy.max-1] != policy.char) or \
+           (passwd[policy.min-1] != policy.char and passwd[policy.max-1] == policy.char)
+
 
 class Policy:
     '''
@@ -85,3 +95,6 @@ def count_valid(path, check):
 if __name__ == '__main__':
     # part 1
     print(count_valid('input/day02.txt', check1))
+    # part 2
+    print(count_valid('input/day02.txt', check2))
+    
