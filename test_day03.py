@@ -18,3 +18,9 @@ class TestDay03(unittest.TestCase):
         f = pkg.load_forest('test_input/day03_t1.txt')
         self.assertEqual(pkg.trees_encountered(f, 3, 1), 7)
     
+    def test_trees_encountered_product(self):
+        f = pkg.load_forest('test_input/day03_t1.txt')
+        self.assertEqual(pkg.trees_encountered_product(f), 336)
+
+if __name__ == '__main__':
+    unittest.main()

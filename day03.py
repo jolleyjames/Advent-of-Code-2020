@@ -3,6 +3,9 @@ Advent of Code 2020, Day 3.
 James Jolley, jim.jolley [at] gmail.com
 '''
 
+from operator import mul
+from functools import reduce
+
 class Forest:
     '''
     Defines size of a forest with positions of trees.
@@ -56,9 +59,16 @@ def trees_encountered(forest, x_move, y_move, start=(0,0)):
         pos = ((pos[0]+x_move)%forest.x_size, pos[1]+y_move)
     return count
 
+def trees_encountered_product(forest, moves=((1,1),(3,1),(5,1),(7,1),(1,2))):
+    '''
+    Run trees_encountered on the same forest for multiple slopes, and
+    return the product.
+    '''
+    return reduce(mul, (trees_encountered(forest, *move) for move in moves))
+
 if __name__ == '__main__':
     # part 1
     forest = load_forest('input/day03.txt')
     print(trees_encountered(forest, 3, 1))
-    
-        
+    # part 2
+    print(trees_encountered_product(forest))
