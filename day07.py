@@ -70,7 +70,31 @@ def all_contained_by(rules, bag):
                     eval_queue.append(containing)
     return all_containing
 
+def count_total_bags_inside(rules, bag, evaluated_bags=None):
+    '''
+    Given a dict of bag colors keyed to the bags they can contain, return
+    the total number of bags contained by the specified bag color.
+    '''
+    if bag not in rules:
+        raise ValueError('bag not found in rules')
+    # Keep a running total of the total number of bags within a bag
+    if evaluated_bags is None:
+        evaluated_bags = {}
+    evaluated_bags[bag] = [0, list(rules[bag])]
+    while evaluated_bags[bag][1]:
+        count, inner_bag = evaluated_bags[bag][1][-1] 
+        if inner_bag not in evaluated_bags:
+            count_total_bags_inside(rules, inner_bag, evaluated_bags) 
+
+        evaluated_bags[bag][0] += (count * (1+evaluated_bags[inner_bag][0])) 
+        evaluated_bags[bag][1].pop() 
+        
+    return evaluated_bags[bag][0]
+
+
 if __name__ == '__main__':
     # part 1
     rules = load_rules('input/day07.txt')
     print(len(all_contained_by(rules, 'shiny gold')))
+    # part 2
+    print(count_total_bags_inside(rules, 'shiny gold'))

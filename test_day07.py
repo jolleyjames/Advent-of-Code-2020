@@ -38,6 +38,17 @@ class TestDay07(unittest.TestCase):
         expected = set(['bright white','muted yellow','dark orange','light red'])
         rules = pkg.load_rules('test_input/day07_t1.txt')
         self.assertSetEqual(pkg.all_contained_by(rules, 'shiny gold'), expected)
+    
+    def test_count_total_bags_inside(self):
+        rules = pkg.load_rules('test_input/day07_t1.txt')
+        self.assertEqual(pkg.count_total_bags_inside(rules, 'faded blue'), 0)
+        self.assertEqual(pkg.count_total_bags_inside(rules, 'dotted black'), 0)
+        self.assertEqual(pkg.count_total_bags_inside(rules, 'vibrant plum'), 11)
+        self.assertEqual(pkg.count_total_bags_inside(rules, 'dark olive'), 7)
+        self.assertEqual(pkg.count_total_bags_inside(rules, 'shiny gold'), 32)
+        rules = pkg.load_rules('test_input/day07_t2.txt')
+        self.assertEqual(pkg.count_total_bags_inside(rules, 'shiny gold'), 126)
+        
 
 if __name__ == '__main__':
     unittest.main()
