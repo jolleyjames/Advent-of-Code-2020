@@ -93,9 +93,29 @@ def find_contiguous_sum(numbers, preamble_len=25):
     exclusive) that sum to the first invalid number in the sequence of
     numbers.
     '''
-    #TODO implement me
-    pass
+    inv = first_invalid(numbers, preamble_len)
+    for i in range(len(numbers)-1):
+        total = numbers[i]
+        for j in range(i+1, len(numbers)):
+            total += numbers[j]
+            if total > inv:
+                break
+            elif total == inv:
+                return (i,j+1)
+    raise ValueError('no contiguous sum found')
+
+def find_weakness(contiguous_sum):
+    '''
+    Given a sequence of numbers that add to the first invalid number,
+    find the XMAS encryption weakness (the sum of the smallest and
+    largest numbers).
+    '''
+    return min(contiguous_sum) + max(contiguous_sum)
 
 if __name__ == '__main__':
+    numbers = load_numbers('input/day09.txt')
     # part 1
-    print(first_invalid(load_numbers('input/day09.txt')))
+    print(first_invalid(numbers))
+    # part 2
+    min_, max_ = find_contiguous_sum(numbers)
+    print(find_weakness(numbers[min_:max_]))

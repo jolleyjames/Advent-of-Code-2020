@@ -48,5 +48,13 @@ class TestDay09(unittest.TestCase):
     def test_first_invalid(self):
         self.assertEqual(pkg.first_invalid(pkg.load_numbers('test_input/day09_t1.txt'),5), 127)
     
+    def test_find_contiguous_sum(self):
+        numbers = pkg.load_numbers('test_input/day09_t1.txt')
+        self.assertEqual(pkg.find_contiguous_sum(numbers,5),(2,6))
+    
+    def test_find_weakness(self):
+        numbers = pkg.load_numbers('test_input/day09_t1.txt')
+        self.assertEqual(pkg.find_weakness(numbers[2:6]), 62)
+
 if __name__ == '__main__':
     unittest.main()
