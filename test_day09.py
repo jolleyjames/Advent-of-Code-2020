@@ -46,7 +46,7 @@ class TestDay09(unittest.TestCase):
         self.assertTrue(xs.is_valid(66))
     
     def test_first_invalid(self):
-        self.assertEqual(pkg.first_invalid('test_input/day09_t1.txt',5), 127)
+        self.assertEqual(pkg.first_invalid(pkg.load_numbers('test_input/day09_t1.txt'),5), 127)
     
 if __name__ == '__main__':
     unittest.main()

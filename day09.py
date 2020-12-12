@@ -68,22 +68,23 @@ class XmasSequence:
         # Update the next index.
         self._next_index += 1
 
-def first_invalid(path, preamble_len=25):
-    '''
-    Returns the first invalid XMAS sequence number in the file at the
-    specified path.
-    '''
+def load_numbers(path):
     with open(path) as file:
-        preamble = []
-        for i in range(preamble_len):
-            preamble.append(int(file.readline().strip()))
-        xs = XmasSequence(preamble)
-        for line in file:
-            next = int(line.strip())
-            try:
-                xs.add_next(next)
-            except ValueError:
-                return next
+        return [int(line.strip()) for line in file.readlines()]
+
+def first_invalid(numbers, preamble_len=25):
+    '''
+    Returns the first invalid XMAS sequence number in the sequence
+    of numbers.
+    '''
+    preamble = numbers[:preamble_len]
+    xs = XmasSequence(preamble)
+    for i in range(preamble_len, len(numbers)):
+        next = numbers[i]
+        try:
+            xs.add_next(next)
+        except ValueError:
+            return next
     raise ValueError('no invalid number found')
 
 def find_contiguous_sum(numbers, preamble_len=25):
@@ -97,4 +98,4 @@ def find_contiguous_sum(numbers, preamble_len=25):
 
 if __name__ == '__main__':
     # part 1
-    print(first_invalid('input/day09.txt'))
+    print(first_invalid(load_numbers('input/day09.txt')))
