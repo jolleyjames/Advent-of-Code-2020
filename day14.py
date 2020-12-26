@@ -50,8 +50,48 @@ def sum_mem(mem):
     '''
     return sum(mem.values())
 
+def parse_mask_v2(s):
+    '''
+    Returns just the bitmap string from an instruction beginning with
+    "mask = ".
+    '''
+    return s.strip().split(' = ')[1]
+
+def run_program_v2(path):
+    '''
+    Load the instructions at the path, and run the program on an emulated
+    **version 2** controller chip with a 36-bit addressable memory block.
+    '''
+    with open(path) as file:
+        program = [parse_mask_v2(line) if line[:4] == 'mask' else parse_write(line) for line in file.readlines()]
+    mem = {}
+    mask, ones, floating_powers = [None]*3
+    for instr in program:
+        if type(instr) == str:
+            mask = instr
+            ones = int(''.join(['1' if c == '1' else '0' for c in mask]),2)
+            floating_powers = []
+            for i in range(36):
+                if mask[-i-1] == 'X':
+                    floating_powers.append(i)
+        elif instr[0] == 'mem':
+            base_addr, value = instr[1:]
+            base_addr |= ones
+            for p in floating_powers:
+                if (base_addr // (2**p)) % 2 == 1:
+                    base_addr -= (2**p)
+            addrs = [base_addr]
+            for p in floating_powers:
+                addrs.extend([a | (2**p) for a in addrs])
+            for a in addrs:
+                mem[a] = value
+        else:
+            raise ValueError(f'undefined instruction {instr[0]}')
+    return mem
+
 if __name__ == '__main__':
     # part 1
     print(sum_mem(run_program('input/day14.txt')))
-
+    # part 2
+    print(sum_mem(run_program_v2('input/day14.txt')))
     

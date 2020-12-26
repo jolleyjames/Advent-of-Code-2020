@@ -17,7 +17,10 @@ class TestDay14(unittest.TestCase):
     
     def test_sum_mem(self):
         self.assertEqual(pkg.sum_mem(pkg.run_program('test_input/day14_t1.txt')), 165)
-
+    
+    def test_run_program_v2(self):
+        self.assertEqual(pkg.sum_mem(pkg.run_program_v2('test_input/day14_t2.txt')), 208)
+        
 
 if __name__ == '__main__':
     unittest.main()

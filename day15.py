@@ -57,3 +57,6 @@ def find_number(path_sn, index):
 if __name__ == '__main__':
     # part 1
     print(find_number('input/day15.txt', 2019))
+    # part 2
+    print(find_number('input/day15.txt', 30000000-1))
+    
