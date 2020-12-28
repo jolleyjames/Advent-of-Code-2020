@@ -3,6 +3,8 @@ Advent of Code 2020, Day 15.
 James Jolley, jim.jolley [at] gmail.com
 '''
 
+from datetime import datetime
+
 def load_starting_numbers(path):
     '''
     Load the starting numbers from the specified path. Returns a tuple
@@ -37,20 +39,12 @@ def find_number(path_sn, index):
     number spoken at index 2019.
     '''
     next_number, next_index, current_state = load_starting_numbers(path_sn)
-    states_to_last_seen = {offset_state(next_index-1, current_state) : next_index-1}
     if next_index > index:
         raise ValueError('index must be at least the number of the starting numbers')
     while next_index < index:
         this_number, this_index = next_number, next_index
         next_number = this_index - current_state.get(this_number, this_index)
         current_state[this_number] = this_index
-        new_state = offset_state(this_index, current_state)
-        if new_state in states_to_last_seen:
-            raise NotImplementedError('TODO implement cycle detection')
-        for state in tuple(states_to_last_seen.keys()):
-            if len(state) < len(new_state):
-                del states_to_last_seen[state]
-        states_to_last_seen[new_state] = this_index
         next_index += 1
     return next_number
 

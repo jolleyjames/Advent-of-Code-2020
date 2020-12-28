@@ -24,6 +24,16 @@ class TestDay15(unittest.TestCase):
         self.assertEqual(pkg.find_number('test_input/day15_t5.txt', 2019), 78)
         self.assertEqual(pkg.find_number('test_input/day15_t6.txt', 2019), 438)
         self.assertEqual(pkg.find_number('test_input/day15_t7.txt', 2019), 1836)
+    
+    def test_find_number_bigindeces(self):
+        self.assertEqual(pkg.find_number('test_input/day15_t1.txt', 30000000-1), 175594)
+        self.assertEqual(pkg.find_number('test_input/day15_t2.txt', 30000000-1), 2578)
+        self.assertEqual(pkg.find_number('test_input/day15_t3.txt', 30000000-1), 3544142)
+        self.assertEqual(pkg.find_number('test_input/day15_t4.txt', 30000000-1), 261214)
+        self.assertEqual(pkg.find_number('test_input/day15_t5.txt', 30000000-1), 6895259)
+        self.assertEqual(pkg.find_number('test_input/day15_t6.txt', 30000000-1), 18)
+        self.assertEqual(pkg.find_number('test_input/day15_t7.txt', 30000000-1), 362)
+    
         
         
 
