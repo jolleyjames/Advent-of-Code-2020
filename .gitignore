@@ -1,5 +1,7 @@
 /input
 /__pycache__
 /offline_pages
+/.vscode
 *.pyc
 *.out
+*.jar
