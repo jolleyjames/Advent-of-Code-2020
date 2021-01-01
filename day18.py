@@ -81,11 +81,7 @@ def parse_expression(s, advanced=False):
 
         else: # operator expected
             op = {'+':add, '*':mul}[s[cursor]]
-            if head is None:
-                head = Node(op, lhs)
-            else:
-                new_head = Node(op, head)
-                head = new_head
+            head = Node(op, head if head else lhs)
             cursor += 1
         op_next = not op_next
     return head
