@@ -34,7 +34,7 @@ class Node:
         return (self.op)(lhs_value, rhs_value)
 
 
-def parse_expression(s):
+def parse_expression(s, advanced=False):
     '''
     Parse the string expression into a Node for evaluation.
     '''
@@ -65,12 +65,20 @@ def parse_expression(s):
                     elif s[end] == ')':
                         paren_count -= 1
                     end += 1
-                value = parse_expression(s[cursor+1:end-1])
+                value = parse_expression(s[cursor+1:end-1], advanced)
+                # add 0 to ensure higher precedence for parenthetical
+                value = Node(add, value, 0) 
             if head is None:
                 lhs = value
             else:
                 head.rhs = value
+                # in advanced math, add has higher precedence than mul
+                if advanced and head.op == add and type(head.lhs) == Node and head.lhs.op == mul:
+                    # perform the addition at head Node before the multiplication at head.lhs
+                    # Node, by moving the mul to head and add to head.rhs
+                    head = Node(mul, head.lhs.lhs, Node(add, head.lhs.rhs, head.rhs))
             cursor = end
+
         else: # operator expected
             op = {'+':add, '*':mul}[s[cursor]]
             if head is None:
@@ -85,5 +93,7 @@ def parse_expression(s):
 if __name__ == '__main__':
     with open('input/day18.txt') as file:
         expressions = file.readlines()
+    # part 1
     print(sum(parse_expression(expr).evaluate() for expr in expressions))
-    
+    # part 2
+    print(sum(parse_expression(expr,True).evaluate() for expr in expressions))
