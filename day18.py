@@ -15,24 +15,13 @@ class Node:
         self.op = op
         self.lhs = lhs
         self.rhs = rhs
-    
-    @staticmethod
-    def side_value(side):
-        '''
-        Get the value of a left-hand or right-hand side argument.
-        '''
-        if type(side) == Node:
-            return side.evaluate()
-        else:
-            return side
-    
+        
     def evaluate(self):
         '''
         Evaluate the expression defined by this Node.
         '''
-        lhs_value, rhs_value = (Node.side_value(side) for side in (self.lhs,self.rhs))
-        return (self.op)(lhs_value, rhs_value)
-
+        values = (side.evaluate() if type(side) == Node else side for side in (self.lhs,self.rhs))
+        return (self.op)(*values)
 
 def parse_expression(s, advanced=False):
     '''
