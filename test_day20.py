@@ -16,6 +16,11 @@ class TestDay20(unittest.TestCase):
         tiles = pkg.load_tiles('test_input/day20_t1.txt')
         corners = pkg.find_corners(pkg.all_edge_values(tiles))
         self.assertCountEqual(corners, [1951,3079,2971,1171])
+    
+    def test_water_roughness(self):
+        tiles = pkg.load_tiles('test_input/day20_t1.txt')
+        image = pkg.assemble_tiles(tiles)
+        self.assertEqual(pkg.water_roughness(image), 273)
 
 
         

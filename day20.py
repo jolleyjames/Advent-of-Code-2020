@@ -4,6 +4,8 @@ James Jolley, jim.jolley [at] gmail.com
 '''
 
 import numpy as np
+from math import sqrt
+from itertools import chain
 
 def load_tiles(path):
     '''
@@ -21,17 +23,25 @@ def load_tiles(path):
         del lines[:12]
     return tiles
 
-def rotate_tile(tile):
+def rotate_tile(tile, length=10):
     '''
     Return a copy of the tile rotated 90 degrees clockwise.
     '''
     new_tile = []
-    for twoexp in range(9, -1, -1):
+    for twoexp in range(length-1, -1, -1):
         value = 0
-        for row in range(9, -1, -1):
+        for row in range(length-1, -1, -1):
             value *= 2
             value += ((tile[row]//(2**twoexp))%2)
         new_tile.append(value)
+    return new_tile
+
+def flip_tile(tile):
+    '''
+    Return a copy of the tile flipped vertically.
+    '''
+    new_tile = list(tile)
+    new_tile.reverse()
     return new_tile
 
 def get_edge_values(tile):
@@ -51,23 +61,27 @@ def get_edge_values(tile):
 
 def all_edge_values(tiles):
     '''
-    Returns all edge values found in all rotations of all tiles. Edge values
-    are keys in the returned dict, mapping to lists of tuples where the value
-    is found. Tuples contain the tile number, the number of rotations applied
-    to the tile (0 to 3 inclusive), and the edge where value was found --
-    0 is top, 1 is right, 2 is bottom, 3 is left.
+    Returns all edge values found in all rotations and flips of all tiles. 
+    Edge values are keys in the returned dict, mapping to lists of tuples where
+    the value is found. Tuples contain the tile number, a number indicating
+    rotations and flips (0 to 3 inclusive indicates the number of rotations;
+    4 to 7 inclusive means a vertical flip followed by 0 to 3 rotations, 
+    respectively), and the edge where value was found -- 0 is top, 1 is right,
+    2 is bottom, 3 is left.
     '''
     edge_values = {}
-    for rot in range(4):
+    for rot in range(8):
         for num, tile in tiles.items():
             edges = get_edge_values(tile)
             for i in range(len(edges)):
                 if edges[i] in edge_values:
                     edge_values[edges[i]].append((num,rot,i))
                 else:
-                    edge_values[edges[i]] = [(num,rot,i)]
-        if rot != 3:
+                    edge_values[edges[i]] = [(num,rot,i)]        
+        if rot != 7:
             tiles = {num:rotate_tile(tile) for num,tile in tiles.items()}
+        if rot == 3:
+            tiles = {num:flip_tile(tile) for num,tile in tiles.items()}
     return edge_values
 
 def find_corners(edge_values):
@@ -89,9 +103,138 @@ def find_corners(edge_values):
     links.sort(key=lambda t:(t[1],t[0]))
     return [link[0] for link in links[:4]]
 
+def find_tile(image, coord, edge_values, exclude):
+    '''
+    Given a partially constructed image, find a tile that fits at the
+    specified coordinate. It is assumed that all requested coordinates
+    have neighboring tiles to the top (if coord not at row 0) and to the
+    left (if coord not at column 0).
+    '''
+    # top edge of tile to find will be bottom edge of above tile
+    top_edge = image[(coord[0]-1,coord[1])][-1] if coord[0] != 0 else None
+    # left edge of tile to find will be right edge of tile to left
+    left_edge = get_edge_values(image[(coord[0],coord[1]-1)])[1] if coord[1] != 0 else None
+    if top_edge is not None and left_edge is not None:
+        matching_tops = [tile[:2] for tile in edge_values[top_edge] if tile[2] == 0 and tile[0] not in exclude]
+        matching_lefts = [tile[:2] for tile in edge_values[left_edge] if tile[2] == 3 and tile[0] not in exclude]
+        match = set(matching_tops) & set(matching_lefts)
+    else:
+        edge, side = (top_edge, 0) if top_edge is not None else (left_edge, 3)
+        match = [tile[:2] for tile in edge_values[edge] if tile[2] == side and tile[0] not in exclude]
+    if len(match) != 1:
+        raise ValueError(f'one match expected, found {len(match)}')
+    return match.pop()
+
+def assemble_tiles(tiles):
+    '''
+    Piece the tiles into an image.
+    '''
+    length = int(sqrt(len(tiles)))
+    image = {}
+    edge_values = all_edge_values(tiles)
+    corners = find_corners(edge_values)
+    # Take the first corner, and find an orientation such that it can
+    # be placed in the top left corner of the image -- meaning, it
+    # must have matching edges on the right and bottom.
+    corner = tiles[corners[0]]
+    placed = set([corner[0]])
+    for i in range(9):
+        if i == 8:
+            raise ValueError('no tile found for top-left corner of image')
+        right_edge, bottom_edge = get_edge_values(corner)[1:3]
+        right_tile_tups = [tile for tile in edge_values[right_edge] if tile[2] in (3,7) and tile[0] != corners[0]]
+        bottom_tile_tups = [tile for tile in edge_values[bottom_edge] if tile[2] in (0,4) and tile[0] != corners[0]]
+        if len(right_tile_tups) == 1 and len(bottom_tile_tups) == 1:
+            # Place corner tile in top left
+            image[(0,0)] = corner
+            # Place tile right of corner.
+            tile, rot, _ = right_tile_tups[0]
+            placed.add(tile)
+            tile = tiles[tile]
+            for _ in range(rot):
+                tile = rotate_tile(tile)
+            image[(0,1)] = tile
+            # Place tile below corner.
+            tile, rot, _ = bottom_tile_tups[0]
+            placed.add(tile)
+            tile = tiles[tile]
+            for _ in range(rot):
+                tile = rotate_tile(tile)
+            image[(1,0)] = tile
+            break
+        else:
+            corner = rotate_tile(corner)
+            if i == 3: corner = flip_tile(corner)
+    # Determine order to place the tiles in the image
+    order = [(j,i-j) for i in range(2,length*2-1) for j in range(0,i+1) if 0<=i-j<length and 0<=j<length]
+    for coord in order:
+        tile, rot = find_tile(image, coord, edge_values, placed)
+        placed.add(tile)
+        tile = tiles[tile]
+        if rot // 4 == 1:
+            tile = flip_tile(tile)
+        for _ in range(rot%4):
+            tile = rotate_tile(tile)
+        image[coord] = tile
+    # Strip borders from tiles
+    for key in image.keys():
+        image[key] = [i // 2 % (2**8) for i in image[key][1:9]]
+    # Convert image into list of columns
+    #image_col = [np.concatenate([image[(i,j)] for i in range(length)]) for j in range(length)]
+    image_col = [list(chain(*[image[(i,j)] for i in range(length)])) for j in range(length)]
+    # Concatenate into a single column
+    full_image = [0]*len(image_col[0])
+    for col in image_col:
+        for i in range(len(full_image)):
+            full_image[i] *= (2**8)
+            full_image[i] += col[i]
+    return full_image
+    
+DEFAULT_MONSTER = (2, 549255, 299592)
+DEFAULT_MONSTER_BITS = 20
+def simple_monster_count(image, monster=DEFAULT_MONSTER, mbits=DEFAULT_MONSTER_BITS):
+    '''
+    Find the number of monsters in the image.
+    '''
+    monster = np.array(monster)
+    mbits = 20
+    count = 0
+    for row in range(len(image)-len(monster)+1):
+        for col in range(len(image)-mbits+1):
+            view = np.array([j // (2**(len(image)-mbits-col)) % (2**mbits)for j in image[row:row+len(monster)]])
+            if all((view & monster) == monster):
+                count += 1
+    return count
+
+def monster_count(image, monster=DEFAULT_MONSTER, mbits=DEFAULT_MONSTER_BITS):
+    '''
+    Find the number of monsters in all iterations of this image.
+    '''
+    counts = []
+    for i in range(8):
+        counts.append(simple_monster_count(image, monster, mbits))
+        image = rotate_tile(image, len(image))
+        if i == 3:
+            image = flip_tile(image)
+    return max(counts)
+
+def water_roughness(image, monster=DEFAULT_MONSTER, mbits=DEFAULT_MONSTER_BITS):
+    '''
+    Find the roughness of the water by finding waves in the image that
+    are not part of a monster.
+    '''
+    monster_ones, total_ones = [sum(f'{r:b}'.count('1') for r in table) for table in (monster,image)]
+    mon_count = monster_count(image, monster, mbits)
+    return total_ones - mon_count * monster_ones
+
 if __name__ == '__main__':
     # part 1
     tiles = load_tiles('input/day20.txt')
-    corners = find_corners(all_edge_values(tiles))
+    edge_values = all_edge_values(tiles)
+    corners = find_corners(edge_values)
     print(np.prod(corners))
+    # part 2
+    image = assemble_tiles(tiles)
+    print(water_roughness(image))
+    
     
