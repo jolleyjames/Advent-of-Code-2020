@@ -34,7 +34,56 @@ class TestDay23(unittest.TestCase):
         for _ in range(90):
             pkg.move_to_destination(cups)
         self.assertEqual(pkg.cups_after_1(cups), '67384529')
+    
+    def test_input_to_huge_list(self):
+        s = '389125467'
+        d = pkg.input_to_huge_list(s, 20)
+        head = d[int(s[0])]
+        for c in s:
+            self.assertEqual(head.value, int(c))
+            head = head.nxt
+        for v in range(10, 21):
+            self.assertEqual(head.value, v)
+            head = head.nxt
+        self.assertEqual(head.value, int(s[0]))
+    
+    def test_move_to_destination_ll(self):
+        d = pkg.input_to_huge_list('389125467', 20)
+        current = d[3]
+        pkg.move_to_destination_ll(current, d)
+        current = current.nxt
+        exp = [2, 8, 9, 1, 5, 4, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 3, 2]
+        vals = []
+        head = current
+        for _ in range(21):
+            vals.append(head.value)
+            head = head.nxt
+        self.assertListEqual(exp, vals)
+        pkg.move_to_destination_ll(current, d)
+        current = current.nxt
+        exp = [5, 4, 6, 7, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 8, 9, 1, 3, 2, 5]
+        vals = []
+        head = current
+        for _ in range(21):
+            vals.append(head.value)
+            head = head.nxt
+        self.assertListEqual(exp, vals)
+        pkg.move_to_destination_ll(current, d)
+        current = current.nxt
+        exp = [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 8, 9, 1, 3, 4, 6, 7, 2, 5, 10]
+        vals = []
+        head = current
+        for _ in range(21):
+            vals.append(head.value)
+            head = head.nxt
+        self.assertListEqual(exp, vals)
+    
+    def test_product_of_nodes(self):
+        self.assertEqual(pkg.product_of_nodes('389125467'), 149245887792)
         
+
+
+
 
 
 
