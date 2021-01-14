@@ -4,6 +4,9 @@ James Jolley, jim.jolley [at] gmail.com
 '''
 
 import numpy as np
+import logging
+
+logger = logging.getLogger()
 
 def load_decks(path):
     '''
@@ -58,22 +61,31 @@ def play_recursive_game(p1, p2, inf_game_flag=1):
     Play a game of Recursive Combat. Since a game may end with both
     players holding cards, return the winning player (1 or 2).
     '''
+    logger.debug('start recursive game')
+    logger.debug(f'p1: {p1}')
+    logger.debug(f'p2: {p2}')
     previous_hands = set()
     while len(p1) > 0 and len(p2) > 0:
         this_hand = (tuple(p1),tuple(p2))
         if this_hand in previous_hands:
+            logger.debug('previous hand detected, p1 wins')
             return inf_game_flag
         else:
             previous_hands.add(this_hand)
         # Check if this round is a sub-game
         if p1[0] < len(p1) and p2[0] < len(p2):
-            winner = play_recursive_game(list(p1[1:]), list(p2[1:]))
-            winner, loser = (p1,p2) if winner == 1 else (p2,p1)
+            logger.debug('starting new recursive game')
+            winner = play_recursive_game(list(p1[1:1+p1[0]]), list(p2[1:1+p2[0]]))
+            logger.debug(f'return from recursive game, winner p{winner}')
+            winner, loser = (p1,p2) if winner in (1,inf_game_flag) else (p2,p1)
             winner.extend((winner[0], loser[0]))
             del winner[0]
             del loser[0]
         else:
             play_round(p1, p2)
+        logger.debug('hands after round:')
+        logger.debug(f'p1: {p1}')
+        logger.debug(f'p2: {p2}')
     return 1 if len(p1) > 0 else 2
 
 if __name__ == '__main__':
