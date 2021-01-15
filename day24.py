@@ -23,9 +23,9 @@ def hex_tile_pos(s):
             raise ValueError(f'invalid direction {s[0]}')
     return tuple(pos)
 
-def count_black(path):
+def load_black(path):
     '''
-    Return the number of black tiles after processing the directions
+    Return the set of positions of black tiles after processing the directions
     in the file at the path. All tiles start white.
     '''
     with open(path) as file:
@@ -37,8 +37,46 @@ def count_black(path):
             black_tiles.remove(pos)
         else:
             black_tiles.add(pos)
-    return len(black_tiles)
+    return black_tiles
+
+def neighbors(pos):
+    '''
+    Get the six neighbors of the hexagonal tile at the specified position.
+    '''
+    x,y = pos
+    return [(x-2,y),(x+2,y),(x-1,y-1),(x+1,y-1),(x-1,y+1),(x+1,y+1)]
+
+def cycle(black):
+    '''
+    Flip all black and white tiles according to the rules. The parameter
+    set contains the complete set of black tiles' positions. All other
+    positions contain white tiles.
+    '''
+    # Find all white tiles neighboring black tiles. Other white tiles
+    # which don't neighbor black tiles are not important, as white tiles
+    # with no adjacent black tiles will remain white.
+    white = set()
+    for b in black:
+        white |= set(nbr for nbr in neighbors(b) if nbr not in black)
+    # black tiles after this cycle are stored here
+    new_black = set()
+    # keep black tiles that will remain black
+    for b in black:
+        if len([nbr for nbr in neighbors(b) if nbr in black]) in (1,2):
+            new_black.add(b)
+    # add tiles that switch from white to black
+    for w in white:
+        if len([nbr for nbr in neighbors(w) if nbr in black]) == 2:
+            new_black.add(w)
+    return new_black
+
+
 
 if __name__ == '__main__':
+    black = load_black('input/day24.txt')
     # part 1
-    print(count_black('input/day24.txt'))
+    print(len(black))
+    # part 2
+    for _ in range(100):
+        black = cycle(black)
+    print(len(black))
